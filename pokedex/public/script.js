@@ -5,10 +5,7 @@ import { OrbitControls } from 'https://esm.sh/three@0.152.2/examples/jsm/control
 // Création de la page de chargement
 const loaderContainer = document.createElement('div');
 loaderContainer.id = 'loader-container';
-loaderContainer.innerHTML = `
-    <div class="pokeball"></div>
-    <h1 class="loading-text">POKEMON by Bilal</h1>
-`;
+loaderContainer.innerHTML = `<div class="pokeball"></div>`;
 document.body.appendChild(loaderContainer);
 
 // Ajouter un style CSS pour l'animation
@@ -27,11 +24,16 @@ style.innerHTML = `
         width: 100%;
         height: 100%;
         background: white;
+        background-image: url('src/fond.jpg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         z-index: 1000;
+        transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
     }
     .pokeball {
         width: 100px;
@@ -56,15 +58,6 @@ style.innerHTML = `
         left: 50%;
         transform: translate(-50%, -50%);
     }
-    .loading-text {
-        font-family: 'Press Start 2P', sans-serif;
-        font-size: 24px;
-        color: #ffcc00;
-        text-shadow: 3px 3px 0px #333;
-        margin-top: 20px;
-        opacity: 1;
-        transition: opacity 0.8s ease-in-out;
-    }
     @keyframes bounce {
         0%, 100% { transform: translateY(0); }
         50% { transform: translateY(-20px); }
@@ -80,8 +73,8 @@ document.head.appendChild(style);
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
 
-// ✅ Position initiale de la caméra (remis comme avant)
-camera.position.set(-0.4, 0.13, 0.8);
+// ✅ Position initiale de la caméra
+camera.position.set(1, 1, 1);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -106,22 +99,21 @@ loader.load('src/test.glb', (gltf) => {
     pokemonModel = gltf.scene;
     scene.add(pokemonModel);
 
-    // ✅ Recalculer la position après chargement
+    // ✅ Ajuster uniquement la direction de la caméra, sans toucher à sa position
     const box = new THREE.Box3().setFromObject(pokemonModel);
     const center = box.getCenter(new THREE.Vector3());
-    camera.position.set(center.x - 0.4, center.y + 0.13, center.z + 0.8);
-    camera.lookAt(center);
+    camera.lookAt(center); // On garde la position initiale mais oriente la vue vers le modèle
 
     // Appliquer l'animation de sortie
     const pokeball = document.querySelector('.pokeball');
-    const loadingText = document.querySelector('.loading-text');
-
     pokeball.style.animation = 'slideOut 1s forwards';
-    loadingText.style.opacity = '0';  // Disparition fluide du texte
 
-    // Supprimer la page de chargement après l'animation
+    // ✅ Disparition fluide du loader et suppression complète
     setTimeout(() => {
-        loaderContainer.style.display = 'none';
+        loaderContainer.style.opacity = '0'; // Rendre invisible
+        setTimeout(() => {
+            loaderContainer.style.display = 'none'; // Supprimer complètement
+        }, 500);
     }, 1000);
 }, undefined, (error) => {
     console.error('❌ Erreur de chargement du modèle:', error);
